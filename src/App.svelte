@@ -1,6 +1,6 @@
 <script>
     import { onMount } from "svelte";
-    import { apiWrapper } from "./config/api";
+    import { apiWrapper, store } from "./config/api";
     import Todo from "./components/Todo.svelte";
     export let todos = [];
     let users = [1,2,3,4,5]
@@ -9,19 +9,43 @@
     let toggleForm = false;
     let todo = "";
     let toggleModal = false;
-
-    onMount(async () => {
-        var result = await apiWrapper('todos');
-        todos = result.splice(0, 10);
-    });
     
+    async function getTodos(){
+        try {
+            let response = await apiWrapper("todos");
+            todos = response;
+        } catch (error) {
+            throw new Error("Someting wrong : " + error);
+        }
+    }
+
+    let todosRequest = getTodos();
+
+    async function createTodos(){
+        try {
+            let response = await store("todos", {
+                body : {
+                    title : todo,
+                    body: todo,
+                    completed: condition,
+                    user: selected
+                }
+            });
+            console.log(response);
+        } catch (error) {
+            throw new Error("Something wrong : " + error);
+        }
+    }
+
+
     function triggerModal(){
         toggleForm = !toggleForm;
     }
 
     function storeTodo(){
-        toggleForm = !toggleForm;
-        toggleForm = !toggleModal;
+        // toggleForm = !toggleForm;
+        // toggleModal = !toggleModal;
+        createTodos();
     }
     
 </script>
@@ -31,7 +55,7 @@
         <form 
             data-testid="form-submit"
             class="z-1 border-solid border-black border-2 flex flex-col w-1/4 p-10 absolute right-1/2 top-[1/2] mt-10 translate-x-1/2 bg-blue-200"
-            on:submit={storeTodo}
+            on:submit|preventDefault={storeTodo}
             >
             <label for="user">
                 User Selected
@@ -45,7 +69,7 @@
             <div class="my-2">
                 <label for="title">
                     Title
-                    <input type="text"  data-testid="title" placeholder="input your todo" name="title" class="p-3 border-solid border-blue-500 border-2 focus:outline-double w-full">
+                    <input type="text"  data-testid="title" placeholder="input your todo" name="title" class="p-3 border-solid border-blue-500 border-2 focus:outline-double w-full" bind:value={todo}>
                 </label>
             </div>
             <div class="my-2">
@@ -77,15 +101,21 @@
         Add Todo
     </button>
     <div class="overflow-y-scroll border-solid border-black">
-        {#if todos.length === 0}
-            <div>
-                There is not todo here
-            </div>
-        {:else}
+        {#await todosRequest }
+            <p>Loading.... </p>
+        {:then}
+            {#if todos.length == 0}
+                <div>
+                    There is not todo here
+                </div>
+            {:else}
             {#each todos as todo}
                 <Todo {...todo}/>
             {/each}
-        {/if}
+            {/if}
+        {:catch error}
+            <p>Something was wrong : {error}</p>
+        {/await}
     </div>
 </main>
 {#if toggleForm}
