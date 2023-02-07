@@ -109,9 +109,9 @@
                     There is not todo here
                 </div>
             {:else}
-            {#each todos as todo}
-                <Todo {...todo}/>
-            {/each}
+                {#each todos as todo}
+                    <Todo {...todo}/>
+                {/each}
             {/if}
         {:catch error}
             <p>Something was wrong : {error}</p>
