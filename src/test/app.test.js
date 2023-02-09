@@ -2,18 +2,19 @@ import { render, cleanup, fireEvent, screen, waitFor } from "@testing-library/sv
 import App from "../App.svelte";
 
 describe("App.svelte", () => {
-
+    let el;
+    beforeEach(() => {
+        el = render(App);
+    })
     afterEach(() => {
         cleanup();
     });
 
     it('Component Is Mount', () => {
-        const { container } = render(App);
-        expect(container).toBeTruthy();
+        expect(el.container).toBeTruthy();
     });
 
     it("get todo lists", async () => {
-        render(App);
         expect(screen.getByText("Loading....")).toBeTruthy();
         await waitFor(() => screen.getAllByTestId("todolists"));
         expect(screen.queryAllByTestId('todolists')[0]).toBeTruthy()
@@ -24,21 +25,20 @@ describe("App.svelte", () => {
     });
 
     it.todo("submit todo at form", async () => {
-        const { getByTestId, getAllByTestId, queryAllByTestId } = render(App);
 
-        const button = getByTestId("add-todo");
+        const buttonAdd = el.getByTestId("add-todo");
 
-        await fireEvent.click(button)
+        await fireEvent.click(buttonAdd)
 
-        const form = getByTestId("form-submit");
+        const form = el.getByTestId("form-submit");
 
         expect(form).toBeTruthy();
 
         const input = form.querySelector("input[type='text']");
-        const userSelect = getByTestId("userSelect");
-        const statusSelect = getByTestId("statusSelect");
-        const userSelectOption = getAllByTestId("user-option");
-        const submitData = getByTestId("submit-data");
+        const userSelect = el.getByTestId("userSelect");
+        const statusSelect = el.getByTestId("statusSelect");
+        const userSelectOption = el.getAllByTestId("user-option");
+        const submitData = el.getByTestId("submit-data");
 
 
         fireEvent.change(userSelect, {
@@ -63,13 +63,13 @@ describe("App.svelte", () => {
 
         await fireEvent.click(submitData);
 
-        const modal = await waitFor(() => screen.getAllByTestId("modal-success"))
+        await waitFor(() => screen.getAllByTestId("modal-success"))
 
         expect(form).not.toBeTruthy();
 
-        expect(modal).toBeTruthy();
+        expect(screen.getByTestId("modal-success")).toBeTruthy();
 
-        const element = queryAllByTestId("todolists");
+        const element = el.queryAllByTestId("todolists");
 
         expect(element[0]).toBeTruthy();
 
@@ -86,17 +86,16 @@ describe("App.svelte", () => {
     it.todo("can delete a todo", () => { })
 
     it("select the option user", async () => {
-        const { getByTestId, getAllByTestId } = render(App);
-        const button = getByTestId("add-todo");
+        const button = el.getByTestId("add-todo");
         await fireEvent.click(button)
-        const userSelect = getByTestId("userSelect");
-        const userSelectOption = getAllByTestId("user-option");
+        const userSelect = el.getByTestId("userSelect");
+        const userSelectOption = el.getAllByTestId("user-option");
 
 
         expect(userSelect).toBeTruthy();
         expect(userSelectOption).toBeTruthy();
 
-        fireEvent.change(getByTestId("userSelect"), {
+        fireEvent.change(el.getByTestId("userSelect"), {
             target: {
                 value: 1
             }
@@ -105,7 +104,7 @@ describe("App.svelte", () => {
         expect(userSelectOption[0].selected).toBeTruthy();
         expect(userSelectOption[1].selected).toBeFalsy();
 
-        fireEvent.change(getByTestId("userSelect"), {
+        fireEvent.change(el.getByTestId("userSelect"), {
             target: {
                 value: 2
             }
@@ -117,15 +116,14 @@ describe("App.svelte", () => {
     });
 
     it("select option status", async () => {
-        const { getByTestId, getAllByTestId } = render(App);
-        const button = getByTestId("add-todo");
+        const button = el.getByTestId("add-todo");
         await fireEvent.click(button)
-        const statusSelect = getByTestId("statusSelect");
-        const statusSelectOption = getAllByTestId("status-option");
+        const statusSelect = el.getByTestId("statusSelect");
+        const statusSelectOption = el.getAllByTestId("status-option");
         expect(statusSelect).toBeTruthy();
         expect(statusSelectOption).toBeTruthy();
 
-        fireEvent.change(getByTestId("statusSelect"), {
+        fireEvent.change(el.getByTestId("statusSelect"), {
             target: {
                 value: true
             }
@@ -134,7 +132,7 @@ describe("App.svelte", () => {
         expect(statusSelectOption[0].selected).toBeTruthy();
         expect(statusSelectOption[1].selected).toBeFalsy();
 
-        fireEvent.change(getByTestId("statusSelect"), {
+        fireEvent.change(el.getByTestId("statusSelect"), {
             target: {
                 value: false
             }
