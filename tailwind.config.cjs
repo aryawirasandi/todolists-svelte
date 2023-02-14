@@ -5,7 +5,16 @@ module.exports = {
     "./src/**/*.{js,ts,jsx,tsx,svelte}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      zIndex: {
+        '1': '1',
+        '2': '2',
+        '3': '3'
+      },
+      inset: {
+        '1/4': '25%'
+      }
+    },
   },
   plugins: [],
 }
