@@ -144,9 +144,6 @@ describe("App.svelte", () => {
             input: input
         })
         expect(await (await screen.findByTestId("result")).textContent).toBe("A Testing Todo Here");
-        // expect(await screen.findByTestId("result")).toBe("A Testing Todo Here");
-        // await waitFor(() => expect(screen.getByText("A Testing Todo Here")).toBeTruthy()); // bug unit testing is not sync with svelte data
-        // expect(el.getByText("A Testing Todo Here")).toEqual("A Testing Todo Here")
     })
 
     it.todo("can show a todo", async () => {
