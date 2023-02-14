@@ -1,4 +1,4 @@
-import { render, cleanup, fireEvent, screen, waitFor, waitForElementToBeRemoved } from "@testing-library/svelte";
+import { render, cleanup, fireEvent, screen, waitFor, waitForElementToBeRemoved, act } from "@testing-library/svelte";
 import App from "../App.svelte";
 
 describe("App.svelte", () => {
@@ -30,54 +30,7 @@ describe("App.svelte", () => {
         const selectedTodo = await screen.findByTestId(`todo-${targetId}`);
         expect(selectedTodo).toBeTruthy();
         await fireEvent.click(todoDeleteTrigger);
-        expect(selectedTodo).not.toBeTruthy();
-    })
-
-    it("submit todo at form", async () => {
-
-        const buttonAdd = screen.getByTestId("add-todo");
-
-        await fireEvent.click(buttonAdd)
-
-        const form = screen.getByTestId("form-submit");
-
-        expect(form).toBeTruthy();
-
-        const input = form.querySelector("input[type='text']");
-        const userSelect = screen.getByTestId("userSelect");
-        const statusSelect = screen.getByTestId("statusSelect");
-        const userSelectOption = screen.getAllByTestId("user-option");
-        const submitData = screen.getByTestId("submit-data");
-
-
-        fireEvent.change(userSelect, {
-            target: {
-                value: 2
-            }
-        });
-
-        expect(userSelectOption[1].selected).toBeTruthy();
-
-        fireEvent.change(input, {
-            target: {
-                value: "A Testing Todo Here"
-            }
-        });
-
-        fireEvent.change(statusSelect, {
-            target: {
-                value: true
-            }
-        });
-
-        expect(input.value).toEqual("A Testing Todo Here");
-        expect(statusSelect.value).toBe('true');
-
-        fireEvent.click(submitData);
-
-
-        // await waitFor(() => expect(screen.getByText("A Testing Todo Here")).toBeTruthy()); // bug unit testing is not sync with svelte data
-        // expect(el.getByText("A Testing Todo Here")).toEqual("A Testing Todo Here")
+        expect(screen.queryByTestId(`todo-${targetId}`)).not.toBeTruthy();
     })
 
     it.todo("can update a todo", async () => {
@@ -142,6 +95,59 @@ describe("App.svelte", () => {
         expect(selectedTodo.getByText("Finish")).toBeTruthy();
 
     });
+
+    it("submit todo at form", async () => {
+
+        const buttonAdd = screen.getByTestId("add-todo");
+
+        await fireEvent.click(buttonAdd)
+
+        const form = await screen.getByTestId("form-submit");
+
+        expect(form).toBeTruthy();
+
+        const input = await screen.findByTestId("title");
+        const userSelect = await screen.findByTestId("userSelect");
+        const statusSelect = await screen.findByTestId("statusSelect");
+        const userSelectOption = screen.getAllByTestId("user-option");
+        const submitData = await screen.findByTestId("submit-data");
+
+
+        fireEvent.change(userSelect, {
+            target: {
+                value: 2
+            }
+        });
+
+        expect(userSelectOption[1].selected).toBeTruthy();
+
+        await act(() => fireEvent.input(input, {
+            target: {
+                value: "A Testing Todo Here"
+            }
+        }));
+
+        await fireEvent.change(statusSelect, {
+            target: {
+                value: true
+            }
+        });
+
+
+
+        expect(input.value).toEqual("A Testing Todo Here");
+        expect(statusSelect.value).toBe('true');
+
+        fireEvent.click(submitData);
+
+        console.log({
+            input: input
+        })
+        expect(await (await screen.findByTestId("result")).textContent).toBe("A Testing Todo Here");
+        // expect(await screen.findByTestId("result")).toBe("A Testing Todo Here");
+        // await waitFor(() => expect(screen.getByText("A Testing Todo Here")).toBeTruthy()); // bug unit testing is not sync with svelte data
+        // expect(el.getByText("A Testing Todo Here")).toEqual("A Testing Todo Here")
+    })
 
     it.todo("can show a todo", async () => {
         const targetId = 1;
