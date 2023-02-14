@@ -139,10 +139,6 @@ describe("App.svelte", () => {
         expect(statusSelect.value).toBe('true');
 
         fireEvent.click(submitData);
-
-        console.log({
-            input: input
-        })
         expect(await (await screen.findByTestId("result")).textContent).toBe("A Testing Todo Here");
     })
 
