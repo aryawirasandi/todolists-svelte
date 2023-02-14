@@ -22,9 +22,6 @@ export const handlers = [
     }),
     rest.post(`${import.meta.env.VITE_BASE_URL}/todos`, async (req, res, ctx) => {
         const response = await req.json();
-        console.log({
-            response
-        })
         return res(
             ctx.status(200),
             ctx.json(response)
