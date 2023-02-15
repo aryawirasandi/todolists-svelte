@@ -69,6 +69,7 @@
         toggleForm = false;
     }
     function triggerModalForm() {
+        backdrop = !backdrop;
         toggleForm = !toggleForm;
     }
 
