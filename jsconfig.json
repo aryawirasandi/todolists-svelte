@@ -23,9 +23,9 @@
      * Typecheck JS in `.svelte` and `.js` files by default.
      * Disable this if you'd like to use dynamic types.
      */
-    "checkJs": true,
+    "checkJs": false,
     "types": [
-      "jest",
+      "vitest",
       "node",
       "vite/client",
       "svelte"
