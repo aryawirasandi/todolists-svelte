@@ -22,3 +22,12 @@ export async function store(query, { method = "POST", body }) {
         throw new Error(`Error : ${error}`)
     }
 }
+
+export async function show(query, option) {
+    try {
+        let response = await apiWrapper(query);
+        return response;
+    } catch (error) {
+        throw new Error(`Error : ${error}`)
+    }
+}

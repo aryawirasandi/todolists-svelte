@@ -20,6 +20,18 @@ export const handlers = [
             ])
         )
     }),
+    rest.get(`${import.meta.env.VITE_BASE_URL}/todos/:id`, (req, res, ctx) => {
+        const { id } = req.params;
+        return res(
+            ctx.status(200),
+            ctx.json({
+                "userId": 1,
+                "id": 1,
+                "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
+                "completed": false
+            })
+        )
+    }),
     rest.post(`${import.meta.env.VITE_BASE_URL}/todos`, async (req, res, ctx) => {
         const response = await req.json();
         return res(
@@ -38,5 +50,5 @@ export const handlers = [
                 userId
             })
         )
-    })
+    }),
 ]

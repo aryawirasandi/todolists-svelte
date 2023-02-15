@@ -142,14 +142,14 @@ describe("App.svelte", () => {
         expect(await (await screen.findByTestId("result")).textContent).toBe("A Testing Todo Here");
     })
 
-    it.todo("can show a todo", async () => {
+    it("can show a todo", async () => {
         const targetId = 1;
-        const todoUpdateTrigger = el.getByTestId(`todo-show-${targetId}`);
+        const todoUpdateTrigger = await el.findByTestId(`todo-${targetId}`);
         const expectedText = "sunt aut facere repellat provident occaecati excepturi optio reprehenderit";
 
         await fireEvent.click(todoUpdateTrigger);
 
-        const modalDisplay = screen.getByTestId("modal-display-todo");
+        const modalDisplay = await el.findByTestId("modal-display-todo");
 
         expect(modalDisplay).toBeTruthy();
 

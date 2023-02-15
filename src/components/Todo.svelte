@@ -4,15 +4,22 @@
     export let id;
     export let title;
     export let userId;
-    
-    const dipatch = createEventDispatcher();
+
+    const dispatch = createEventDispatcher();
+
+    function handler(type, payload) {
+        dispatch(type, payload)
+    }
 </script>
 
-<div class="my-10 p-10 bg-white shadow-lg border-solid border-black w-100 relative"  data-testid="todo-{id}" >
+<div class="my-10 p-10 cursor-pointer bg-white shadow-lg border-solid border-black w-100 relative"
+    on:click="{handler('show', id)}" data-testid="todo-{id}">
     <div class="bg-red-500 h-10 w-10 absolute flex items-center justify-center left-0 top-0 rounded-br-xl">
         <p class="text-white">{id}</p>
     </div>
-    <button on:click="{() => dipatch('delete', id)}" class="bg-red-500 h-10 w-10 absolute flex items-center justify-center w-36 cursor-pointer right-0 top-0 rounded-bl-xl text-white" data-testid="todo-delete-{id}">
+    <button on:click="{handler('delete', id)}"
+        class="bg-red-500 h-10 w-10 absolute flex items-center justify-center w-36 cursor-pointer right-0 top-0 rounded-bl-xl text-white"
+        data-testid="todo-delete-{id}">
         delete
     </button>
     <div>
@@ -24,9 +31,9 @@
         <p>
             <span class="mr-5"> Status: </span>
             {#if completed}
-                <span class="text-white bg-green-500 p-3">Finish</span>
+            <span class="text-white bg-green-500 p-3">Finish</span>
             {:else}
-                <span class="text-white bg-red-500 p-3">Not finish</span>
+            <span class="text-white bg-red-500 p-3">Not finish</span>
             {/if}
         </p>
     </div>
