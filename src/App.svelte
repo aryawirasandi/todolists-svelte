@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { fly, fade } from "svelte/transition"
     import { cubicOut } from "svelte/easing";
-    import { apiWrapper, store, show } from "./config/api";
+    import { apiWrapper, store, show, remove } from "./config/api";
     import Todo from "./components/Todo.svelte";
     export let todos = [];
     let users = [1, 2, 3, 4, 5]
@@ -46,10 +46,15 @@
             throw new Error("Something wrong : " + error);
         }
     }
-    function removeTodo(event) {
-        const { detail } = event;
-        const todosFiltered = todos.filter(todo => todo.id != detail);
-        todos = todosFiltered;
+    async function removeTodo(event) {
+        const id = event.detail;
+        try {
+            const response = await remove(`todos/${id}`);
+            const todosFiltered = todos.filter(todo => todo.id != id);
+            todos = todosFiltered;
+        } catch (error) {
+            throw new Error("Something wrong : " + error);
+        }
     }
     async function showTodo(event) {
         const id = event.detail;
@@ -67,6 +72,7 @@
         toggleModalRead = false;
         toggleModal = false;
         toggleForm = false;
+        console.log("this clicked")
     }
     function triggerModalForm() {
         backdrop = !backdrop;
@@ -132,7 +138,7 @@
         class="border-solid border-black border-2 flex flex-col w-1/4 p-10 absolute z-1 right-1/2 top-[1/2] mt-10 translate-x-1/2 bg-blue-200">
         <div class="text-center">
             <p>Created by user {selectedTodo.id}</p>
-            <p>sunt aut facere repellat provident occaecati excepturi optio reprehenderit</p>
+            <p>{selectedTodo.title}</p>
         </div>
     </div>
     {/if}
@@ -160,6 +166,7 @@
     </div>
 </main>
 {#if backdrop }
-<button in:fly out:fade class="bg-black top-0 opacity-25 absolute w-full h-full" on:click={closeModal}>
+<button data-testid="backdrop" in:fly out:fade class="bg-black top-0 opacity-25 absolute w-full h-full"
+    on:click={closeModal}>
 </button>
 {/if}
