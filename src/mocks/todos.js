@@ -32,6 +32,12 @@ export const handlers = [
             })
         )
     }),
+    rest.delete(`${import.meta.env.VITE_BASE_URL}/todos/:id`, (req, res, ctx) => {
+        return res(
+            ctx.status(200),
+            ctx.json({})
+        )
+    }),
     rest.post(`${import.meta.env.VITE_BASE_URL}/todos`, async (req, res, ctx) => {
         const response = await req.json();
         return res(
