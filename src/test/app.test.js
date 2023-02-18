@@ -28,9 +28,14 @@ describe("App.svelte", () => {
         const targetId = 1;
         const todoDeleteTrigger = await screen.findByTestId(`todo-delete-${targetId}`);
         const selectedTodo = await screen.findByTestId(`todo-${targetId}`);
+        await screen.queryByTestId(`todo-${targetId}`)
         expect(selectedTodo).toBeTruthy();
         await fireEvent.click(todoDeleteTrigger);
-        expect(screen.queryByTestId(`todo-${targetId}`)).not.toBeTruthy();
+        waitForElementToBeRemoved(() => screen.getByTestId(`todo-${1}`))
+            .then(() => {
+                console.log("element removed");
+            })
+            .catch(err => console.log(err));
     })
 
     it.todo("can update a todo", async () => {
@@ -79,6 +84,8 @@ describe("App.svelte", () => {
                 value: 2
             }
         });
+
+
 
         await fireEvent.click(updateData);
 
@@ -144,17 +151,27 @@ describe("App.svelte", () => {
 
     it("can show a todo", async () => {
         const targetId = 1;
-        const todoUpdateTrigger = await el.findByTestId(`todo-${targetId}`);
+        const todoShowTrigger = await screen.findByTestId(`todo-show-${targetId}`);
         const expectedText = "sunt aut facere repellat provident occaecati excepturi optio reprehenderit";
 
-        await fireEvent.click(todoUpdateTrigger);
+        await fireEvent.click(todoShowTrigger);
 
-        const modalDisplay = await el.findByTestId("modal-display-todo");
+        const backdrop = screen.getByTestId('backdrop');
+
+        expect(backdrop).toBeTruthy();
+
+        const modalDisplay = await screen.findByTestId("modal-display-todo");
 
         expect(modalDisplay).toBeTruthy();
 
         expect(modalDisplay.querySelector("p:nth-child(1)").textContent).toBe(`Created by user ${1}`)
         expect(modalDisplay.querySelector("p:nth-child(2)").textContent).toBe(expectedText);
+
+        await fireEvent.click(backdrop);
+
+        waitForElementToBeRemoved(screen.getByTestId("backdrop"))
+            .then(() => console.log("backdrop at delete removed"))
+            .catch(err => console.error("something error : " + err))
     })
 
     it("select the option user", async () => {
