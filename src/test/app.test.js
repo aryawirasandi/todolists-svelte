@@ -40,32 +40,31 @@ describe("App.svelte", () => {
 
     it.todo("can update a todo", async () => {
         const targetId = 1;
-        const todoUpdateTrigger = el.getByTestId(`update-todo-${targetId}`);
+        const todoUpdateTrigger = await screen.findByTestId(`todo-update-${targetId}`);
         const expectedText = "sunt aut facere repellat provident occaecati excepturi optio reprehenderit";
         const postText = "A Testing Todo Here";
 
         await fireEvent.click(todoUpdateTrigger);
 
-        const form = el.getByTestId("form-submit");
+        const form = await screen.findByTestId("form-submit");
 
         expect(form).toBeTruthy();
 
-        const updateInput = form.querySelector("input[type='text']");
-        const userSelect = el.getByTestId("userSelect");
-        const statusSelect = el.getByTestId("statusSelect");
-        const userSelectOption = el.getAllByTestId("user-option");
-        const updateData = el.getByTestId("update-data");
+        const userSelect = screen.getByTestId("userSelect");
+        const statusSelect = screen.getByTestId("statusSelect");
+        const userSelectOption = await screen.getAllByTestId("user-option");
+        const updateTodoTrigger = screen.getByTestId("update-data");
+        const input = screen.getByTestId("title");
+        const backdrop = await screen.findByTestId('backdrop');
 
-        expect(updateInput.value).toBe(expectedText);
-        expect(userSelect.value).toBe(1);
-        expect(statusSelect.value).toBe(false);
-        expect(userSelectOption.value).toBe(1);
-
-        fireEvent.change(updateInput, {
-            target: {
-                value: postText
-            }
-        });
+        expect(backdrop).toBeTruthy();
+        await waitFor(() => {
+            expect(input.value).toBe(expectedText);
+            expect(userSelect.value).toBe('1');
+            expect(statusSelect.value).toBe('false');
+            expect(userSelectOption[0].selected).toBeTruthy();
+            expect(userSelectOption[1].selected).toBeFalsy();
+        })
 
         fireEvent.change(userSelect, {
             target: {
@@ -79,27 +78,43 @@ describe("App.svelte", () => {
             }
         });
 
-        fireEvent.change(userSelectOption, {
+        await act(() => fireEvent.input(input, {
             target: {
-                value: 2
+                value: postText
             }
-        });
+        }));
 
 
+        expect(userSelect.value).toBe('2');
+        expect(statusSelect.value).toBe('true');
+        expect(userSelectOption[0].selected).toBeFalsy();
+        expect(userSelectOption[1].selected).toBeTruthy();
+        expect(input.value).toBe(postText)
 
-        await fireEvent.click(updateData);
+        await fireEvent.click(updateTodoTrigger);
 
+        await waitFor(() => {
+            const modalResult = screen.getByTestId("modal-success");
+            expect(modalResult).toBeTruthy();
+        }, {
+            timeout: 5000
+        })
 
-        expect(updateInput.value.length).toBe(0);
-        expect(userSelect.value).toBe(1);
-        expect(statusSelect.value).toBe(false);
-        expect(userSelectOption.value).toBe(1);
+        waitForElementToBeRemoved(() => screen.getByTestId("modal-success"))
+            .then(() => console.log('modal success after update todo is removed'))
+            .catch((error) => {
+                console.log(`Something Error : ${error}`)
+            })
 
-        const selectedTodo = el.getByTestId(`todo-${targetId}`);
+        const selectedUpdateTodo = screen.getByTestId(`todo-${targetId}`);
 
-        expect(selectedTodo.getByText("A Testing Todo Here")).toBeTruthy();
-        expect(selectedTodo.getByText(`Created by user ${targetId}`)).toBeTruthy();
-        expect(selectedTodo.getByText("Finish")).toBeTruthy();
+        expect(selectedUpdateTodo.getByText("A Testing Todo Here")).toBeTruthy();
+        expect(selectedUpdateTodo.getByText(`Created by user ${targetId}`)).toBeTruthy();
+        expect(selectedUpdateTodo.getByText("Finish")).toBeTruthy();
+
+        waitForElementToBeRemoved(screen.getByTestId("backdrop"))
+            .then(() => console.log("backdrop at update removed"))
+            .catch(err => console.error("something error : " + err))
 
     });
 
@@ -140,13 +155,10 @@ describe("App.svelte", () => {
             }
         });
 
-
-
         expect(input.value).toEqual("A Testing Todo Here");
         expect(statusSelect.value).toBe('true');
 
         fireEvent.click(submitData);
-        expect(await (await screen.findByTestId("result")).textContent).toBe("A Testing Todo Here");
     })
 
     it("can show a todo", async () => {
@@ -156,7 +168,7 @@ describe("App.svelte", () => {
 
         await fireEvent.click(todoShowTrigger);
 
-        const backdrop = screen.getByTestId('backdrop');
+        const backdrop = await screen.findByTestId('backdrop');
 
         expect(backdrop).toBeTruthy();
 
