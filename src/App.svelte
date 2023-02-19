@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { fly, fade } from "svelte/transition"
     import { cubicOut } from "svelte/easing";
-    import { apiWrapper, store, show } from "./config/api";
+    import { apiWrapper, store, show, remove, edit } from "./config/api";
     import Todo from "./components/Todo.svelte";
     export let todos = [];
     let users = [1, 2, 3, 4, 5]
@@ -13,9 +13,8 @@
     let toggleModalRead = false;
     let todo = "";
     let selectedTodo = null;
-    let backdrop = false;
     let todosRequest = getTodos();
-
+    let toggleUpdate = false;
     async function getTodos() {
         try {
             let response = await apiWrapper("todos");
@@ -25,7 +24,6 @@
         }
     }
     async function createTodo() {
-        backdrop = !backdrop;
         try {
             let response = await store("todos", {
                 body: {
@@ -38,7 +36,6 @@
             toggleForm = !toggleForm;
             toggleModal = !toggleModal;
             setTimeout(() => {
-                backdrop = !backdrop;
                 toggleModal = !toggleModal;
             }, 1000)
             todos = [...todos, response];
@@ -46,14 +43,18 @@
             throw new Error("Something wrong : " + error);
         }
     }
-    function removeTodo(event) {
-        const { detail } = event;
-        const todosFiltered = todos.filter(todo => todo.id != detail);
-        todos = todosFiltered;
+    async function removeTodo(event) {
+        const id = event.detail;
+        try {
+            const response = await remove(`todos/${id}`);
+            const todosFiltered = todos.filter(todo => todo.id != id);
+            todos = todosFiltered;
+        } catch (error) {
+            throw new Error("Something wrong : " + error);
+        }
     }
     async function showTodo(event) {
         const id = event.detail;
-        backdrop = !backdrop;
         try {
             let response = await show(`todos/${id}`);
             selectedTodo = response;
@@ -62,24 +63,69 @@
             throw new Error("Something wrong : " + error);
         }
     }
+    async function showTodoForUpdate(event) {
+        const id = event.detail;
+        toggleUpdate = !toggleUpdate
+        try {
+            toggleForm = !toggleForm;
+            let response = await show(`todos/${id}`);
+            selected = response.userId;
+            todo = response.title;
+            isCompleted = response.completed;
+        } catch (error) {
+            throw new Error(`Something was Wrong : ${error}`)
+        }
+    }
+    function resetForm() {
+        selected = 1;
+        todo = "";
+        isCompleted = false;
+    }
     function closeModal() {
-        backdrop = !backdrop;
         toggleModalRead = false;
         toggleModal = false;
         toggleForm = false;
+        toggleUpdate = false;
+        resetForm();
     }
     function triggerModalForm() {
-        backdrop = !backdrop;
         toggleForm = !toggleForm;
     }
-
+    async function updateTodo(id) {
+        try {
+            let response = await edit(`todos/${id}`, {
+                body: {
+                    id,
+                    title: todo,
+                    completed: isCompleted,
+                    userId: selected
+                }
+            });
+            todos = todos.map(todo => todo.id === id ? { ...todo, userId: response.userId, title: response.title, completed: response.completed } : todo);
+            toggleUpdate = !toggleUpdate;
+            toggleForm = !toggleForm;
+            toggleModal = !toggleModal;
+            setTimeout(() => {
+                toggleModal = !toggleModal;
+            }, 1000);
+            resetForm();
+        } catch (error) {
+            throw new Error(`Something was Wrong : ${error}`)
+        }
+    }
+    function submit() {
+        !toggleUpdate ? createTodo() : updateTodo(idSelected)
+    }
+    $: backdrop = toggleForm || toggleModal || toggleModalRead;
+    $: resultText = toggleModal && toggleUpdate ? "Success Add Todo" : "Success Update Todo"
+    $: idSelected = selected;
 </script>
 
 <main class="relative p-4">
     {#if toggleForm}
     <form data-testid="form-submit"
-        class="z-1 border-solid border-black border-2 flex flex-col w-1/4 p-10 absolute right-1/2 top-[1/2] mt-10 translate-x-1/2 bg-blue-200"
-        on:submit|preventDefault={createTodo} in:fly="{{ delay : 500}}" out:fade>
+        class="z-1 border-solid border-black border-2 flex flex-col w-1/4 p-10  right-1/2 top-[1/2] mt-10 translate-x-1/2 bg-blue-200 fixed"
+        on:submit|preventDefault={submit} in:fly="{{ delay : 500}}" out:fade>
         <label for="user">
             User Selected
             <select data-testid="userSelect" bind:value={selected}
@@ -88,7 +134,7 @@
                 {#each users as user }
                 <option data-testid="user-option" value={user}>{user}</option>
                 {/each}
-                <select />
+            </select>
         </label>
         <div class="my-2">
             <label for="title">
@@ -96,9 +142,6 @@
                 <input type="text" data-testid="title" placeholder="input your todo" name="title"
                     class="p-3 border-solid border-blue-500 border-2 focus:outline-double w-full" bind:value={todo}>
             </label>
-            <p data-testid="result">
-                {todo}
-            </p>
         </div>
         <div class="my-2">
             <label for="status">
@@ -107,14 +150,20 @@
                     class="p-3 border-solid border-blue-500 border-2 focus:outline-double w-full">
                     <option disabled selected>Select status of todo </option>
                     <option data-testid="status-option" value={true}>Finish</option>
-                    <option data-testid="status-option" value={false}>Not Finish Finish</option>
+                    <option data-testid="status-option" value={false}>Not Finish</option>
                 </select>
             </label>
         </div>
         <div class="my-2">
+            {#if !toggleUpdate}
             <button
                 class="border-white border-solid bg-blue-500 opacity-50 hover:opacity-100 transition ease-in delay-200 text-white p-3 rounded-lg w-full"
                 data-testid="submit-data">Submit</button>
+            {:else}
+            <button
+                class="border-white border-solid bg-green-500 opacity-50 hover:opacity-100 transition ease-in delay-200 text-white p-3 rounded-lg w-full"
+                data-testid="update-data">Update</button>
+            {/if}
         </div>
     </form>
     {/if}
@@ -122,7 +171,7 @@
     <div data-testid="modal-success"
         class="border-solid border-black border-2 flex flex-col w-1/4 p-10 absolute z-1 right-1/2 top-[1/2] mt-10 translate-x-1/2 bg-blue-200">
         <div class="text-center">
-            <p>Success Add Todo</p>
+            <p>{resultText}</p>
         </div>
     </div>
     {/if}
@@ -132,7 +181,7 @@
         class="border-solid border-black border-2 flex flex-col w-1/4 p-10 absolute z-1 right-1/2 top-[1/2] mt-10 translate-x-1/2 bg-blue-200">
         <div class="text-center">
             <p>Created by user {selectedTodo.id}</p>
-            <p>sunt aut facere repellat provident occaecati excepturi optio reprehenderit</p>
+            <p>{selectedTodo.title}</p>
         </div>
     </div>
     {/if}
@@ -151,7 +200,7 @@
         </div>
         {:else}
         {#each todos as todo}
-        <Todo {...todo} on:show={showTodo} on:delete={removeTodo} />
+        <Todo {...todo} on:show={showTodo} on:delete={removeTodo} on:update={showTodoForUpdate} />
         {/each}
         {/if}
         {:catch error}
@@ -160,6 +209,7 @@
     </div>
 </main>
 {#if backdrop }
-<button in:fly out:fade class="bg-black top-0 opacity-25 absolute w-full h-full" on:click={closeModal}>
+<button data-testid="backdrop" in:fly out:fade class="bg-black top-0 opacity-25 absolute w-full h-full"
+    on:click={closeModal}>
 </button>
 {/if}

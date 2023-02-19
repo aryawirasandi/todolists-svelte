@@ -5,3 +5,7 @@
 body {
     @apply relative;
 }
+
+.btn {
+    @apply p-3 hover:opacity-50 text-white;
+}

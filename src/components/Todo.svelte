@@ -1,5 +1,6 @@
 <script>
     import { createEventDispatcher } from "svelte"
+    import { fly, fade } from "svelte/transition"
     export let completed;
     export let id;
     export let title;
@@ -12,15 +13,20 @@
     }
 </script>
 
-<div class="my-10 p-10 cursor-pointer bg-white shadow-lg border-solid border-black w-100 relative"
-    on:click="{handler('show', id)}" data-testid="todo-{id}">
+<div in:fly out:fade class="my-10 p-10 bg-white shadow-lg border-solid border-black w-100 relative"
+    data-testid="todo-{id}">
     <div class="bg-red-500 h-10 w-10 absolute flex items-center justify-center left-0 top-0 rounded-br-xl">
         <p class="text-white">{id}</p>
     </div>
     <button on:click="{handler('delete', id)}"
-        class="bg-red-500 h-10 w-10 absolute flex items-center justify-center w-36 cursor-pointer right-0 top-0 rounded-bl-xl text-white"
+        class="btn bg-red-500 h-10 absolute flex items-center justify-center w-36 cursor-pointer right-0 top-0 rounded-bl-xl"
         data-testid="todo-delete-{id}">
         delete
+    </button>
+    <button on:click="{handler('update', id)}"
+        class="btn bg-yellow-500 h-10 absolute flex items-center justify-center w-36 cursor-pointer right-0 bottom-5 rounded-bl-xl"
+        data-testid="todo-update-{id}">
+        update
     </button>
     <div>
         <p class="text-4xl text-gray">{title}</p>
@@ -36,5 +42,11 @@
             <span class="text-white bg-red-500 p-3">Not finish</span>
             {/if}
         </p>
+    </div>
+    <div class="flex gap-5 mt-5 items-center">
+        <p>Detail</p>
+        <button data-testid="todo-show-{id}" on:click="{handler('show', id)}" class="bg-blue-500 btn">
+            Detail Todo
+        </button>
     </div>
 </div>
