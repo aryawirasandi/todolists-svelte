@@ -21,7 +21,6 @@ export const handlers = [
         )
     }),
     rest.get(`${import.meta.env.VITE_BASE_URL}/todos/:id`, (req, res, ctx) => {
-        const { id } = req.params;
         return res(
             ctx.status(200),
             ctx.json({
@@ -45,7 +44,7 @@ export const handlers = [
             ctx.json(response)
         )
     }),
-    rest.put(`${import.meta.env.VITE_BASE_URL}/todos`, (req, res, ctx) => {
+    rest.put(`${import.meta.env.VITE_BASE_URL}/todos/:id`, (req, res, ctx) => {
         const { id, title, completed, userId } = req.variables;
         return res(
             ctx.status(200),
